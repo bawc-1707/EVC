@@ -21,6 +21,8 @@ public slots:
     void notionwrongnfc();
     void notionavaliablenfc();
     void notionaddnfc();
+    void notionpermission();
+    void notiondisconnect();
 
 private:
     Ui::Notion *notion;

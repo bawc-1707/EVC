@@ -30,14 +30,13 @@ public:
     ~MainWindow();
 public slots:
     void handleMenuClose();
+    void handleCheckNFC(const QString &uid);
     void handleNFCdetected(const QString &uid);
     void handleDetected(const QString &uid);
     void backdisplay();
     void clickedmenu();
 private slots:
     void readData();
-
-    void on_Buttonstart_clicked();
 
     void on_Buttonstop_clicked();
 
@@ -51,12 +50,11 @@ private:
     QString UID;
     QString date;
     QTimer *timer;
-    QTimer *timer1;
     float kWh;
     nfc_device *pnd;
     nfc_context *context;
+    bool ispermission;
 
-    void sendREADsignal();
     bool isUidValid(const QString &uid);
     void sendSignal(const QString &signal);
     void uptime();
@@ -64,7 +62,11 @@ private:
     void startCoutdown();
     void updateCoutdown();
     void addhistorydata(const QString &uid, const QString &date, float kWh);
-
+    void handleReadData(QString dataStr);
+    void handleSendAmpe();
+    void handleCheckPermission(QString dataStr);
+    void handleDisconnect();
+    void sendAmpe();
 };
 
 #endif // MAINWINDOW_H

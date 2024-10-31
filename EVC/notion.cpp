@@ -22,8 +22,6 @@ void Notion::notionchecknfc()
 {
     notion->label_2->setText("Hãy quẹt thẻ NFC");
     notion->label_2->setAlignment(Qt::AlignCenter);
-
-
 }
 
 void Notion::notionwrongnfc()
@@ -51,6 +49,21 @@ void Notion::notionavaliablenfc()
 void Notion::notionaddnfc()
 {
     notion->label_2->setText("Thẻ NFC đã được thêm vào bộ nhớ");
+    notion->label_2->setAlignment(Qt::AlignCenter);
+
+    if(timer->isActive()){
+        timer->stop();
+    }
+    timer->start(5000);
+}
+
+void Notion::notionpermission(){
+    notion->label_2->setText("Hãy điều chỉnh lại dòng điện");
+    notion->label_2->setAlignment(Qt::AlignCenter);
+}
+
+void Notion::notiondisconnect(){
+    notion->label_2->setText("Đã rút dây sạc");
     notion->label_2->setAlignment(Qt::AlignCenter);
 
     if(timer->isActive()){

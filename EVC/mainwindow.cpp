@@ -10,6 +10,7 @@ MainWindow::MainWindow(const QString uidt, const QString date,QWidget *parent)
     , notion(nullptr)
     , UID(uidt)
     , date(date)
+    , ispermission(false)
 {
     mainwindow->setupUi(this);
     setWindowFlag(Qt::FramelessWindowHint);
@@ -52,21 +53,18 @@ MainWindow::MainWindow(const QString uidt, const QString date,QWidget *parent)
         qDebug() << "Khong the mo serialport" << Qt::endl;
     }
     mainwindow->Buttonstop->setEnabled(false);
-    mainwindow->Buttonstart->setEnabled(true);
+    mainwindow->Buttonchange->setEnabled(true);
     mainwindow->Buttonuptime->setEnabled(true);
     mainwindow->Buttondowntime->setEnabled(true);
     mainwindow->ButtonBack->setEnabled(true);
     mainwindow->Buttonmenu->setEnabled(true);
     timer = new QTimer(this);
-    timer1 = new QTimer(this);
     connect(serial, SIGNAL(readyRead()), this, SLOT(readData()));
     connect(mainwindow->Buttonuptime, &QPushButton::clicked, this, &MainWindow::uptime);
     connect(mainwindow->Buttondowntime, &QPushButton::clicked, this, &MainWindow::downtime);
     connect(mainwindow->ButtonBack, &QPushButton::clicked, this, &MainWindow::backdisplay);
     connect(mainwindow->Buttonmenu, &QPushButton::clicked, this, &MainWindow::clickedmenu);
     connect(timer, &QTimer::timeout, this, &MainWindow::updateCoutdown);
-    connect(timer1, &QTimer::timeout, this, &MainWindow::sendREADsignal);
-    timer1->start(1000);
 }
 
 MainWindow::~MainWindow()
@@ -90,30 +88,6 @@ void MainWindow::sendSignal(const QString &signal){
     }
     else {
         qDebug() << "Cong serial khong mo" << Qt::endl;
-    }
-}
-
-void MainWindow::sendREADsignal(){
-    sendSignal("READ0");
-}
-
-
-void MainWindow::on_Buttonstart_clicked()
-{
-
-    mainwindow->Buttonstop->setEnabled(true);
-    mainwindow->Buttonstart->setEnabled(false);
-    mainwindow->Buttonuptime->setEnabled(false);
-    mainwindow->Buttondowntime->setEnabled(false);
-    mainwindow->ButtonBack->setEnabled(false);
-    mainwindow->Buttonmenu->setEnabled(false);
-    QTime currenttime = mainwindow->timeEdit->time();
-    if(currenttime == QTime(0, 0, 0) ){
-        sendSignal("ON000");
-    }
-    else{
-        sendSignal("ON000");
-        startCoutdown();
     }
 }
 
@@ -158,7 +132,7 @@ void MainWindow::on_Buttonstop_clicked()
         addhistorydata(UID, date, kWh);
     }
     mainwindow->Buttonstop->setEnabled(false);
-    mainwindow->Buttonstart->setEnabled(true);
+    mainwindow->Buttonchange->setEnabled(true);
     mainwindow->Buttonuptime->setEnabled(true);
     mainwindow->Buttondowntime->setEnabled(true);
     mainwindow->ButtonBack->setEnabled(true);
@@ -167,7 +141,7 @@ void MainWindow::on_Buttonstop_clicked()
 
 void MainWindow::handleDetected(const QString &uid){
     if (isUidValid(uid)) {
-        float kWh = static_cast<float>(mainwindow->NumberkWh->value());
+        kWh = static_cast<float>(mainwindow->NumberkWh->value());
         notion->close();
         sendSignal("OFF00");
         addhistorydata(uid, date, kWh);
@@ -198,38 +172,139 @@ bool MainWindow::isUidValid(const QString &uid){
 }
 
 void MainWindow::readData(){
-
-        QByteArray data = serial->readAll();
-
-        QString dataStr = QString::fromUtf8(data).trimmed();
-        QStringList values = dataStr.split(',', Qt::SkipEmptyParts);
-
-
-        if (values.size() == 8) {
-            bool conversionOk = true;
-            double displayValues[8];
-
-            for (int i = 0; i < 8; ++i) {
-                displayValues[i] = values[i].toDouble(&conversionOk);
-                if (!conversionOk) {
-                    qDebug() << "Loi chuyen doi du lieu:" << values[i];
-                    return;
-                }
+    buffer += QString::fromUtf8(serial->readAll());
+    int endIndex = buffer.indexOf('@');
+    while (endIndex != -1) {
+        QString dataStr = buffer.left(endIndex).trimmed();
+        buffer.remove(0, endIndex + 1);
+        if(!dataStr.isEmpty()){
+            QChar signalData = dataStr[0];
+            switch (signalData) {
+            case 'A':
+                handleReadData(dataStr);
+                break;
+            case 'B':
+                handleSendAmpe();
+                break;
+            case 'C':
+                handleCheckPermission(dataStr);
+                break;
+            case 'D':
+                handleDisconnect();
+                break;
             }
-
-            mainwindow->NumberVa->display(displayValues[0]);
-            mainwindow->NumberVb->display(displayValues[1]);
-            mainwindow->NumberVc->display(displayValues[2]);
-            mainwindow->NumberIa->display(displayValues[3]);
-            mainwindow->NumberIb->display(displayValues[4]);
-            mainwindow->NumberIc->display(displayValues[5]);
-            mainwindow->NumberP->display(displayValues[6]);
-            mainwindow->NumberkWh->display(displayValues[7]);
-
-        } else {
-            qDebug() << "Du lieu khong du hoac khong hop le:" << dataStr;
+            default:
+                qDebug() << "Loại tín hiệu không hợp lệ:" << signalData;
+                break;
         }
+        endIndex = buffer.indexOf('@');
+    }
 }
+
+void MainWindow::handleReadData(QString dataStr){
+    QStringList values = dataStr.mid(1).split(',', Qt::SkipEmptyParts);
+    if (values.size() == 8) {
+        bool conversionOk = true;
+        double displayValues[8];
+        for (int i = 0; i < 8; ++i) {
+            displayValues[i] = values[i].toDouble(&conversionOk);
+            if (!conversionOk) {
+                qDebug() << "Lỗi chuyển đổi dữ liệu:" << values[i];
+                return;
+            }
+        }
+        mainwindow->NumberVa->display(displayValues[0]);
+        mainwindow->NumberVb->display(displayValues[1]);
+        mainwindow->NumberVc->display(displayValues[2]);
+        mainwindow->NumberIa->display(displayValues[3]);
+        mainwindow->NumberIb->display(displayValues[4]);
+        mainwindow->NumberIc->display(displayValues[5]);
+        mainwindow->NumberP->display(displayValues[6]);
+        mainwindow->NumberkWh->display(displayValues[7]);
+    } else {
+        qDebug() << "Dữ liệu không đủ hoặc không hợp lệ:" << dataStr;
+    }
+}
+
+void MainWindow::handleSendAmpe(){
+    notion = new Notion(this);
+    notion->setModal(true);
+    notion->show();
+    notion->notionchecknfc();
+    qDebug() << "đã cắm sạc";
+    QThread *nfcthread = new QThread;
+    NFCWorker *nfcworker = new NFCWorker(pnd);
+    connect(nfcworker, &NFCWorker::nfcDetected, this, &MainWindow::handleCheckNFC);
+    connect(nfcthread, &QThread::finished, nfcworker, &NFCWorker::deleteLater);
+    connect(nfcthread, &QThread::finished, nfcthread, &QThread::deleteLater);
+    nfcworker->moveToThread(nfcthread);
+    connect(nfcthread, &QThread::started, nfcworker, &NFCWorker::checkNfc);
+    nfcthread->start();
+    sendAmpe();
+}
+
+void MainWindow::handleCheckNFC(const QString &uid){
+    if(isUidValid(uid)){
+        if(ispermission){
+            notion->close();
+            mainwindow->Buttonstop->setEnabled(true);
+            mainwindow->Buttonchange->setEnabled(false);
+            mainwindow->Buttonuptime->setEnabled(false);
+            mainwindow->Buttondowntime->setEnabled(false);
+            mainwindow->ButtonBack->setEnabled(false);
+            mainwindow->Buttonmenu->setEnabled(false);
+            QTime currenttime = mainwindow->timeEdit->time();
+            if(currenttime == QTime(0, 0, 0) ){
+                sendSignal("ON000");
+            }
+            else{
+                sendSignal("ON000");
+                startCoutdown();
+            }
+        }
+        else{
+            notion->notionpermission();
+            qDebug() << "Dòng điện không hợp lệ";
+        }
+    }
+    else{
+        notion->notionwrongnfc();
+        qDebug() << "The NFC khong hop le";
+    }
+}
+
+void MainWindow::sendAmpe(){
+
+}
+
+void MainWindow::handleCheckPermission(QString dataStr){
+    if (dataStr.compare("CTRUE") == 0) {
+        ispermission = true;
+    }else if (dataStr.compare("CFALSE") == 0){
+        ispermission = false;
+    }
+}
+
+void MainWindow::handleDisconnect(){
+    ispermission = false;
+    if(!notion){
+        notion = new Notion(this);
+        notion->setModal(true);
+        notion->show();
+        notion->notiondisconnect();
+        qDebug() << "Đã rút dây sạc";
+    }else {
+        notion->notiondisconnect();
+        qDebug() << "Đã rút dây sạc";
+    }
+    mainwindow->Buttonstop->setEnabled(false);
+    mainwindow->Buttonchange->setEnabled(true);
+    mainwindow->Buttonuptime->setEnabled(true);
+    mainwindow->Buttondowntime->setEnabled(true);
+    mainwindow->ButtonBack->setEnabled(true);
+    mainwindow->Buttonmenu->setEnabled(true);
+}
+
 void MainWindow::clickedmenu()
 {
     notion = new Notion(this);
