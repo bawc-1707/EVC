@@ -18,6 +18,11 @@ MainWindow::MainWindow(const QString uidt, const QString date,QWidget *parent)
 
     mainwindow->timeEdit->setReadOnly(true);
     mainwindow->timeEdit->setFocusPolicy(Qt::NoFocus);
+    mainwindow->timeEdit->setButtonSymbols(QAbstractSpinBox::NoButtons);
+    mainwindow->spinBox->setReadOnly(true);
+    mainwindow->spinBox->setFocusPolicy(Qt::NoFocus);
+    mainwindow->spinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
+    mainwindow->spinBox->setValue(currentSet[index]);
 
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("/home/pi/app/Database/nfc_database.db");
@@ -65,6 +70,7 @@ MainWindow::MainWindow(const QString uidt, const QString date,QWidget *parent)
     connect(mainwindow->ButtonBack, &QPushButton::clicked, this, &MainWindow::backdisplay);
     connect(mainwindow->Buttonmenu, &QPushButton::clicked, this, &MainWindow::clickedmenu);
     connect(timer, &QTimer::timeout, this, &MainWindow::updateCoutdown);
+    connect(mainwindow->Buttonchange, &QPushButton::clicked, this, &MainWindow::changeCurrentSet);
 }
 
 MainWindow::~MainWindow()
@@ -89,6 +95,11 @@ void MainWindow::sendSignal(const QString &signal){
     else {
         qDebug() << "Cong serial khong mo" << Qt::endl;
     }
+}
+
+void MainWindow::changeCurrentSet(){
+    index = (index +1) % 5;
+    mainwindow->spinBox->setValue(currentSet[index]);
 }
 
 void MainWindow::startCoutdown(){
@@ -179,23 +190,17 @@ void MainWindow::readData(){
         buffer.remove(0, endIndex + 1);
         if(!dataStr.isEmpty()){
             QChar signalData = dataStr[0];
-            switch (signalData) {
-            case 'A':
+            if (signalData == QLatin1String("A")) {
                 handleReadData(dataStr);
-                break;
-            case 'B':
+            } else if (signalData == QLatin1String("B")) {
                 handleSendAmpe();
-                break;
-            case 'C':
+            } else if (signalData == QLatin1String("C")) {
                 handleCheckPermission(dataStr);
-                break;
-            case 'D':
+            } else if (signalData == QLatin1String("D")) {
                 handleDisconnect();
-                break;
-            }
-            default:
+            } else {
                 qDebug() << "Loại tín hiệu không hợp lệ:" << signalData;
-                break;
+            }
         }
         endIndex = buffer.indexOf('@');
     }
@@ -227,6 +232,7 @@ void MainWindow::handleReadData(QString dataStr){
 }
 
 void MainWindow::handleSendAmpe(){
+    sendAmpe();
     notion = new Notion(this);
     notion->setModal(true);
     notion->show();
@@ -240,7 +246,7 @@ void MainWindow::handleSendAmpe(){
     nfcworker->moveToThread(nfcthread);
     connect(nfcthread, &QThread::started, nfcworker, &NFCWorker::checkNfc);
     nfcthread->start();
-    sendAmpe();
+
 }
 
 void MainWindow::handleCheckNFC(const QString &uid){
@@ -274,7 +280,9 @@ void MainWindow::handleCheckNFC(const QString &uid){
 }
 
 void MainWindow::sendAmpe(){
-
+    int ampeSet = mainwindow->spinBox->value();
+    QString a = QString("%1").arg(ampeSet, 5, 10, QChar('0'));
+    sendSignal(a);
 }
 
 void MainWindow::handleCheckPermission(QString dataStr){

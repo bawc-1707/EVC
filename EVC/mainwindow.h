@@ -47,6 +47,7 @@ private:
     MenuWindow *menuwindow;
     Notion *notion;
     QSerialPort *serial;
+    QString buffer;
     QString UID;
     QString date;
     QTimer *timer;
@@ -54,6 +55,8 @@ private:
     nfc_device *pnd;
     nfc_context *context;
     bool ispermission;
+    int index = 0;
+    int currentSet[5] = {6, 8, 10, 13, 16};
 
     bool isUidValid(const QString &uid);
     void sendSignal(const QString &signal);
@@ -67,6 +70,7 @@ private:
     void handleCheckPermission(QString dataStr);
     void handleDisconnect();
     void sendAmpe();
+    void changeCurrentSet();
 };
 
 #endif // MAINWINDOW_H

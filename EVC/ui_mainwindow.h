@@ -1,3 +1,11 @@
+/********************************************************************************
+** Form generated from reading UI file 'mainwindow.ui'
+**
+** Created by: Qt User Interface Compiler version 6.4.2
+**
+** WARNING! All changes made in this file will be lost when recompiling UI file!
+********************************************************************************/
+
 #ifndef UI_MAINWINDOW_H
 #define UI_MAINWINDOW_H
 
@@ -8,6 +16,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpinBox>
 #include <QtWidgets/QTimeEdit>
 #include <QtWidgets/QWidget>
 
@@ -41,6 +50,7 @@ public:
     QPushButton *Buttondowntime;
     QTimeEdit *timeEdit;
     QPushButton *ButtonBack;
+    QSpinBox *spinBox;
 
     void setupUi(QMainWindow *MainWindow)
     {
@@ -52,7 +62,7 @@ public:
         label = new QLabel(centralwidget);
         label->setObjectName("label");
         label->setGeometry(QRect(0, 0, 480, 320));
-        label->setPixmap(QPixmap(QString::fromUtf8("/home/pi/app/Picture/DISPLAY.jpg")));
+        label->setPixmap(QPixmap(QString::fromUtf8("../Picture/DISPLAY.jpg")));
         label->setScaledContents(true);
         labelVa = new QLabel(centralwidget);
         labelVa->setObjectName("labelVa");
@@ -100,21 +110,21 @@ public:
         Buttonchange->setObjectName("Buttonchange");
         Buttonchange->setGeometry(QRect(48, 230, 60, 60));
         QIcon icon;
-        icon.addFile(QString::fromUtf8("/home/pi/app/Picture/icon-start.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon.addFile(QString::fromUtf8("../Picture/icon-start.png"), QSize(), QIcon::Normal, QIcon::Off);
         Buttonchange->setIcon(icon);
         Buttonchange->setIconSize(QSize(70, 70));
         Buttonstop = new QPushButton(centralwidget);
         Buttonstop->setObjectName("Buttonstop");
         Buttonstop->setGeometry(QRect(372, 230, 60, 60));
         QIcon icon1;
-        icon1.addFile(QString::fromUtf8("/home/pi/app/Picture/icon-stop.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon1.addFile(QString::fromUtf8("../Picture/icon-stop.png"), QSize(), QIcon::Normal, QIcon::Off);
         Buttonstop->setIcon(icon1);
         Buttonstop->setIconSize(QSize(60, 60));
         Buttonmenu = new QPushButton(centralwidget);
         Buttonmenu->setObjectName("Buttonmenu");
         Buttonmenu->setGeometry(QRect(440, 0, 40, 40));
         QIcon icon2;
-        icon2.addFile(QString::fromUtf8("/home/pi/app/Picture/icon-menu.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon2.addFile(QString::fromUtf8("../Picture/icon-menu.png"), QSize(), QIcon::Normal, QIcon::Off);
         Buttonmenu->setIcon(icon2);
         Buttonmenu->setIconSize(QSize(30, 30));
         NumberkWh = new QLCDNumber(centralwidget);
@@ -127,19 +137,19 @@ public:
         Buttonuptime->setObjectName("Buttonuptime");
         Buttonuptime->setGeometry(QRect(156, 230, 60, 60));
         QIcon icon3;
-        icon3.addFile(QString::fromUtf8("/home/pi/app/Picture/up-time.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon3.addFile(QString::fromUtf8("../Picture/up-time.png"), QSize(), QIcon::Normal, QIcon::Off);
         Buttonuptime->setIcon(icon3);
         Buttonuptime->setIconSize(QSize(90, 90));
         Buttondowntime = new QPushButton(centralwidget);
         Buttondowntime->setObjectName("Buttondowntime");
         Buttondowntime->setGeometry(QRect(264, 230, 60, 60));
         QIcon icon4;
-        icon4.addFile(QString::fromUtf8("/home/pi/app/Picture/down-time.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon4.addFile(QString::fromUtf8("../Picture/down-time.png"), QSize(), QIcon::Normal, QIcon::Off);
         Buttondowntime->setIcon(icon4);
         Buttondowntime->setIconSize(QSize(90, 90));
         timeEdit = new QTimeEdit(centralwidget);
         timeEdit->setObjectName("timeEdit");
-        timeEdit->setGeometry(QRect(185, 40, 110, 30));
+        timeEdit->setGeometry(QRect(185, 20, 110, 30));
         QFont font;
         font.setPointSize(14);
         timeEdit->setFont(font);
@@ -147,9 +157,13 @@ public:
         ButtonBack->setObjectName("ButtonBack");
         ButtonBack->setGeometry(QRect(0, 0, 40, 40));
         QIcon icon5;
-        icon5.addFile(QString::fromUtf8("/home/pi/app/Picture/go-back.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon5.addFile(QString::fromUtf8("../Picture/go-back.png"), QSize(), QIcon::Normal, QIcon::Off);
         ButtonBack->setIcon(icon5);
         ButtonBack->setIconSize(QSize(40, 40));
+        spinBox = new QSpinBox(centralwidget);
+        spinBox->setObjectName("spinBox");
+        spinBox->setGeometry(QRect(215, 60, 50, 30));
+        spinBox->setFont(font);
         MainWindow->setCentralWidget(centralwidget);
 
         retranslateUi(MainWindow);
